@@ -91,9 +91,10 @@ export default function MetricCard({
   const getProgressBarData = () => {
     if (!range || !metricKey) return null;
 
-    const currentValue = currentNum;
+    // Use updated value if available, otherwise use current value
+    const displayValue = updatedNum !== undefined ? updatedNum : currentNum;
     const totalRange = range.max - range.min;
-    const currentPosition = ((currentValue - range.min) / totalRange) * 100;
+    const currentPosition = ((displayValue - range.min) / totalRange) * 100;
     const idealStart = ((range.idealMin - range.min) / totalRange) * 100;
     const idealEnd = ((range.idealMax - range.min) / totalRange) * 100;
 

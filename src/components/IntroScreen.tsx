@@ -473,12 +473,14 @@ export default function IntroScreen({
                 )}
               </div>
 
-              <button
-                onClick={handleStart}
-                className="bg-[#fdc803] z-10 text-[#653200] text-2xl font-bold py-4 px-6 rounded-[24px] hover:scale-105 transition-all transform border-6 border-[#653200] hover:brightness-105 duration-300 cursor-pointer"
-              >
-                Got it!
-              </button>
+              {!isLoading && (
+                <button
+                  onClick={handleStart}
+                  className="bg-[#fdc803] z-10 text-[#653200] text-2xl font-bold py-4 px-6 rounded-[24px] hover:scale-105 transition-all transform border-6 border-[#653200] hover:brightness-105 duration-300 cursor-pointer"
+                >
+                  Got it!
+                </button>
+              )}
             </div>
           </div>
         </div>
