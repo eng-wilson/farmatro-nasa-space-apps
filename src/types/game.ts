@@ -9,7 +9,9 @@ export interface Penalty {
     | "soilPH"
     | "productivityIndex"
     | "sustainability"
-    | "cropHealth";
+    | "cropHealth"
+    | "temperature"
+    | "rainfall";
   title: string;
   description: string;
 }

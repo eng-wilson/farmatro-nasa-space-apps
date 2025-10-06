@@ -279,7 +279,7 @@ export const applyCardEffects = (
   // 3. pH OVERCORRECTION CHECK
   if (
     (card.effects.soilPH || 0) > 0 &&
-    currentState.soilPH > 7.0 &&
+    currentState.soilPH > 7 &&
     !hasPenaltyType("soilPH", "Alkaline")
   ) {
     effects.productivityIndex -= 20;
@@ -525,8 +525,8 @@ export const applyRecurrentPenalties = (gameState: GameState): GameState => {
 
   // Apply penalty effects EVERY turn when conditions are met, regardless of whether penalty already exists
 
-  // 1. WATERLOGGING - Apply damage every turn if moisture > 60%
-  if (gameState.soilMoisture > 60) {
+  // 1. WATERLOGGING - Apply damage every turn if moisture > 70%
+  if (gameState.soilMoisture > 70) {
     newState.productivityIndex = Math.max(0, newState.productivityIndex - 5);
     newState.sustainability = Math.max(0, newState.sustainability - 8);
 
@@ -541,8 +541,8 @@ export const applyRecurrentPenalties = (gameState: GameState): GameState => {
     }
   }
 
-  // 2. DROUGHT - Apply damage every turn if moisture < 20%
-  if (gameState.soilMoisture < 20) {
+  // 2. DROUGHT - Apply damage every turn if moisture < 30%
+  if (gameState.soilMoisture < 30) {
     newState.productivityIndex = Math.max(0, newState.productivityIndex - 3);
     newState.sustainability = Math.max(0, newState.sustainability - 5);
 
@@ -557,8 +557,8 @@ export const applyRecurrentPenalties = (gameState: GameState): GameState => {
     }
   }
 
-  // 3. ALKALINE - Apply damage every turn if pH > 7.5
-  if (gameState.soilPH > 7.5) {
+  // 3. ALKALINE - Apply damage every turn if pH > 7
+  if (gameState.soilPH > 7) {
     newState.productivityIndex = Math.max(0, newState.productivityIndex - 4);
 
     // Only add penalty badge if it doesn't already exist
@@ -572,8 +572,8 @@ export const applyRecurrentPenalties = (gameState: GameState): GameState => {
     }
   }
 
-  // 4. ACIDITY - Apply damage every turn if pH < 5.0
-  if (gameState.soilPH < 5.0) {
+  // 4. ACIDITY - Apply damage every turn if pH < 6
+  if (gameState.soilPH < 6) {
     newState.productivityIndex = Math.max(0, newState.productivityIndex - 6);
 
     // Only add penalty badge if it doesn't already exist
@@ -583,6 +583,54 @@ export const applyRecurrentPenalties = (gameState: GameState): GameState => {
         title: "Recurrent Acidity",
         description:
           "Aluminum toxicity persists! Toxic metals continue to damage root systems.",
+      });
+    }
+  }
+
+  // 5. CROP HEALTH - Apply damage every turn if crop health < 0.3
+  if (gameState.cropHealth < 0.3) {
+    newState.productivityIndex = Math.max(0, newState.productivityIndex - 8);
+    newState.sustainability = Math.max(0, newState.sustainability - 10);
+
+    // Only add penalty badge if it doesn't already exist
+    if (!hasPenaltyType("cropHealth", "Poor Health")) {
+      newPenalties.push({
+        metric: "cropHealth",
+        title: "Recurrent Poor Health",
+        description:
+          "Crops are struggling! Low crop health reduces productivity and sustainability.",
+      });
+    }
+  }
+
+  // 6. TEMPERATURE - Apply damage every turn if temperature is outside ideal range
+  if (gameState.temperature < 15 || gameState.temperature > 30) {
+    newState.productivityIndex = Math.max(0, newState.productivityIndex - 4);
+    newState.sustainability = Math.max(0, newState.sustainability - 6);
+
+    // Only add penalty badge if it doesn't already exist
+    if (!hasPenaltyType("temperature", "Temperature Stress")) {
+      newPenalties.push({
+        metric: "temperature",
+        title: "Recurrent Temperature Stress",
+        description:
+          "Extreme temperatures stress crops! Outside the ideal 15-30°C range, plants struggle to grow efficiently.",
+      });
+    }
+  }
+
+  // 7. RAINFALL - Apply damage every turn if rainfall is outside ideal range
+  if (gameState.rainfall < 10 || gameState.rainfall > 50) {
+    newState.productivityIndex = Math.max(0, newState.productivityIndex - 3);
+    newState.sustainability = Math.max(0, newState.sustainability - 5);
+
+    // Only add penalty badge if it doesn't already exist
+    if (!hasPenaltyType("rainfall", "Rainfall Imbalance")) {
+      newPenalties.push({
+        metric: "rainfall",
+        title: "Recurrent Rainfall Imbalance",
+        description:
+          "Inadequate or excessive rainfall! Outside the ideal 10-50mm range, water management becomes challenging.",
       });
     }
   }
@@ -606,7 +654,7 @@ export const clearResolvedPenalties = (gameState: GameState): GameState => {
     if (
       penalty.metric === "soilMoisture" &&
       penalty.title.includes("Waterlogging") &&
-      gameState.soilMoisture <= 60
+      gameState.soilMoisture <= 70
     ) {
       return false;
     }
@@ -614,7 +662,7 @@ export const clearResolvedPenalties = (gameState: GameState): GameState => {
     if (
       penalty.metric === "soilMoisture" &&
       penalty.title.includes("Drought") &&
-      gameState.soilMoisture >= 20
+      gameState.soilMoisture >= 30
     ) {
       return false;
     }
@@ -622,14 +670,40 @@ export const clearResolvedPenalties = (gameState: GameState): GameState => {
     if (
       penalty.metric === "soilPH" &&
       penalty.title.includes("Alkaline") &&
-      gameState.soilPH <= 7.0
+      gameState.soilPH <= 7
     ) {
       return false;
     }
     if (
       penalty.metric === "soilPH" &&
       penalty.title.includes("Acid") &&
-      gameState.soilPH >= 5.5
+      gameState.soilPH >= 6
+    ) {
+      return false;
+    }
+    // Clear crop health penalties if health is back to normal
+    if (
+      penalty.metric === "cropHealth" &&
+      penalty.title.includes("Poor Health") &&
+      gameState.cropHealth >= 0.3
+    ) {
+      return false;
+    }
+    // Clear temperature penalties if temperature is back to normal range
+    if (
+      penalty.metric === "temperature" &&
+      penalty.title.includes("Temperature Stress") &&
+      gameState.temperature >= 15 &&
+      gameState.temperature <= 30
+    ) {
+      return false;
+    }
+    // Clear rainfall penalties if rainfall is back to normal range
+    if (
+      penalty.metric === "rainfall" &&
+      penalty.title.includes("Rainfall Imbalance") &&
+      gameState.rainfall >= 10 &&
+      gameState.rainfall <= 50
     ) {
       return false;
     }
