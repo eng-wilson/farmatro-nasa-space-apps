@@ -114,7 +114,6 @@ class ApiService {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
       });
-
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
