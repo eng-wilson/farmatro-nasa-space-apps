@@ -101,7 +101,7 @@ class ApiService {
   constructor() {
     this.baseUrl =
       process.env.NODE_ENV === "production"
-        ? "https://balatro-react.vercel.app/api"
+        ? "https://farmatro-nasa-space-apps.vercel.app/api"
         : "http://localhost:3000/api";
   }
 
